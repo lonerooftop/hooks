@@ -20,4 +20,5 @@ def main():
         print "COMMIT FAILED, solve the problems and try again"
         sys.exit(1)
 
-main()
+if __name__ == "__main__":
+    main()

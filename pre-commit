@@ -1,1 +1,52 @@
-pre-commit.py
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+STATUS="$(git status --porcelain) | grep '^.[^ ]')"
+STASH=0
+if [ $? -eq 0 ]; then
+    STASH=1
+fi
+
+if [ $STASH -eq 1 ]; then
+    echo -n "Stashing local changes for checks... "
+    git stash save --keep-index --include-untracked "Pre-commit hook auto save"
+    if [ $? -ne 0 ]; then
+        echo " failed, aborting"
+        exit 1
+    else
+        echo " done"
+    fi
+fi
+
+python "${DIR}/pre-commit.py"
+
+RESULT=$?
+
+git clean -fd && git co .
+
+if [ $? -ne 0 ]; then
+    echo "git clean failed, continuing with hook but may need manual cleanup later"
+    if [ $STASH -eq 1 ]; then
+        echo "NB! Local (not-staged) changes are still stashed"
+    fi;
+else
+    if [ $STASH -eq 1 ]; then
+        echo -n "Unstashing local changes... "
+        # see http://stackoverflow.com/questions/20479794/how-do-i-properly-git-stash-pop-in-pre-commit-hooks-to-get-a-clean-working-tree
+        # for rationale behind git reset
+        git reset --hard && git stash pop --index
+        if [ $? -ne 0 ]; then
+            echo "failed, continuing with hook, but needs manual unstash afterwards"
+        else
+            echo " done"
+        fi
+    fi
+fi
+
+exit $RESULT

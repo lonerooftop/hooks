@@ -15,7 +15,7 @@ fi
 
 if [ $STASH -eq 1 ]; then
     echo -n "Stashing local changes for checks... "
-    git stash save --keep-index --include-untracked "Pre-commit hook auto save"
+    git stash save --keep-index --include-untracked -q "Pre-commit hook auto save"
     if [ $? -ne 0 ]; then
         echo " failed, aborting"
         exit 1
@@ -28,7 +28,7 @@ python "${DIR}/pre-commit.py"
 
 RESULT=$?
 
-git clean -fd && git co .
+git clean -fdq && git co -q .
 
 if [ $? -ne 0 ]; then
     echo "git clean failed, continuing with hook but may need manual cleanup later"
@@ -40,7 +40,7 @@ else
         echo -n "Unstashing local changes... "
         # see http://stackoverflow.com/questions/20479794/how-do-i-properly-git-stash-pop-in-pre-commit-hooks-to-get-a-clean-working-tree
         # for rationale behind git reset
-        git reset --hard && git stash pop --index
+        git reset --hard -q && git stash pop --index -q
         if [ $? -ne 0 ]; then
             echo "failed, continuing with hook, but needs manual unstash afterwards"
         else

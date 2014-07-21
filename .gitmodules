@@ -1,0 +1,3 @@
+[submodule "cowramfs"]
+	path = cowramfs
+	url = git@github.com:reinhrst/cowramfs.git

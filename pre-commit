@@ -1,1 +1,50 @@
-pre-commit.py
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+GITROOT="$(pwd)"
+PARENTROOT="$(cd .. && pwd)"
+GITDIRNAME="$(basename "$(pwd)")"
+TEMPDIR="${PARENTROOT}"/"${GITDIRNAME}"_precommit
+mkdir ${TEMPDIR}
+if [ $? -ne 0 ]; then
+    echo 'Precommit temp dir "${TEMPDIR}" exists (or unable to create for some other reason). Please fix and try again'
+    exit 1
+fi
+
+python "${DIR}"/cowramfs/cowramfs.py "${GITROOT}" "${TEMPDIR}" > /dev/null &
+PYTHONPID=$!
+sleep 0.1
+if [ ! -d "${TEMPDIR}"/.git/hooks ]; then
+    echo "CowRamFS mount failed, bailing"
+    exit 1
+fi
+echo "hello"
+
+cd "${TEMPDIR}"
+
+STATUS="$(git status --porcelain | grep '^.[^ ]')"
+if [ $? -eq 0 ]; then
+    echo -n "Stashing local changes for checks... "
+    git stash save --keep-index --include-untracked "Pre-commit hook auto save"
+    if [ $? -ne 0 ]; then
+        echo " failed, aborting"
+        exit 1
+    else
+        echo " done"
+    fi
+fi
+
+python "${DIR}/pre-commit.py"
+
+RESULT=$?
+
+echo "Clean up the python mount"
+echo 'umount "${TEMPDIR}" && rmdir "${TEMPDIR}"'
+
+exit $RESULT

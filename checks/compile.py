@@ -1,4 +1,5 @@
 import base
+import status
 import filetype
 import os
 import subprocess
@@ -6,24 +7,45 @@ import subprocess
 
 class CompileCheck(base.PerFileCheck):
     COMPILECOMMAND = []
-    EXTENSION = ''
+    ONLY_IF_OLDFILE_COMPILES = True
+
+    def checkOldFile(self, changedFile):
+        with base.TempDir() as dirname:
+            tempfilename = os.path.join(
+                dirname,
+                os.path.basename(changedFile.filename))
+            with open(tempfilename, "w") as f:
+                f.writelines(changedFile.oldlines)
+            cmd = list(self.COMPILECOMMAND)
+            cmd.append(tempfilename)
+            try:
+                subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            except:
+                return False
+            return True
 
     def checkFile(self, changedFile):
-        cmd = self.COMPILECOMMAND
-        extension = self.EXTENSION
-        tmpname = base.tmpfile(changedFile.filename, extension)
-        cmd.append(tmpname)
+        if changedFile.status != status.ADDED:
+            if (self.ONLY_IF_OLDFILE_COMPILES and
+                    not self.checkOldFile(changedFile)):
+                # nothing to check, old file didn't compile
+                return []
+
+        cmd = list(self.COMPILECOMMAND)
+        cmd.append(changedFile.filename)
         try:
             subprocess.check_output(cmd, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as calledprocesserror:
             return [base.CheckError(changedFile, self.__class__,
                                     calledprocesserror.output)]
-        finally:
-            os.unlink(tmpname)
         return []
 
 
 class PythonCompileCheck(CompileCheck):
     INTERESTED_IN_FILETYPES = [filetype.PYTHON]
     COMPILECOMMAND = ['python', '-m' 'py_compile']
-    EXTENSION = '.py'
+
+
+class Pep8Check(CompileCheck):
+    INTERESTED_IN_FILETYPES = [filetype.PYTHON]
+    COMPILECOMMAND = ['flake8']

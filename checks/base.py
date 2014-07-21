@@ -1,7 +1,9 @@
+import difflib
 import subprocess
-import tempfile
 import status
 import filetype
+import tempfile
+import shutil
 
 
 class ChangedFile:
@@ -22,24 +24,24 @@ class ChangedFile:
 
     @classmethod
     def createForStagedFile(cls, filename):
-        diff = subprocess.check_output(("git", "diff", "--cached",
-                                        "-U999999999", "--patch-with-raw",
-                                        "--", filename)).split('\n')
-        # first line looks like:
-        # :100755 100755 ebb1c24... 9c69414... M  setupEnv.sh
-        filestatus = status.determineStatus(diff[0].split()[4])
-        newlines = []
-        oldlines = []
+        with open(filename, "r") as f:
+            newlines = f.read().split("\n")
+        oldlines = subprocess.check_output(
+            ("git", "show", "HEAD:%s" % filename)).split("\n")
+
+        textstatus = subprocess.check_output(
+            ("git", "status", "--porcelain", filename))[0]
+
+        filestatus = status.determineStatus(textstatus)
         modifiedlinenumbers = []
 
-        # first 6 lines are headers, last one is an enter
-        for line in diff[6:-1]:
+        diff = difflib.Differ().compare(oldlines, newlines)
+        linenr = 0
+        for line in diff:
             if line[0] in (' ', '+'):
-                newlines.append(line[1:])
+                linenr += 1
             if line[0] in ('+'):
-                modifiedlinenumbers.append(len(newlines)-1)
-            if line[0] in (' ', '-'):
-                oldlines.append(line[1:])
+                modifiedlinenumbers.append(linenr-1)
 
         if filestatus == status.ADDED:
             oldlines = None
@@ -91,7 +93,6 @@ class PerFileCheck(Check):
 
 
 class PerModifiedLineCheck(PerFileCheck):
-
     def checkFile(self, changedFile):
         errors = []
         for linenr in changedFile.modifiedlinenumbers:
@@ -112,18 +113,13 @@ class PerModifiedLineCheck(PerFileCheck):
         return None
 
 
-def getfile(filename):
-    """returns as a string the staged content of the file with that filename"""
-    return subprocess.check_output(["git", "show", ":%s" % filename])
+class TempDir():
+    def __enter__(self):
+        self.tempdir = tempfile.mkdtemp()
+        return self.tempdir
 
-
-def tmpfile(filename, suffix):
-    """saves the staged version of that file to a tmpfile
-    and returns the tmpfile name"""
-    tmpfile = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
-    tmpfile.write(getfile(filename))
-    tmpfile.close()
-    return tmpfile.name
+    def __exit__(self, errortype, value, traceback):
+        shutil.rmtree(self.tempdir)
 
 
 def check(checks_to_perform):

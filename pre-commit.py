@@ -4,6 +4,7 @@ import sys
 
 CHECKS = [
     checks.compile.PythonCompileCheck,
+    checks.compile.Pep8Check,
     checks.endoffilecheck.SingleNewlineEndOfFileCheck,
     checks.character.OnlySafeCharacters,
     checks.character.NoTabs,

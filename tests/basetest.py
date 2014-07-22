@@ -18,14 +18,43 @@ class HookTestCase(unittest.TestCase):
         subprocess.check_call(["git", "commit", "-nqm", message],
                               cwd=self.root)
 
-    def run_precommit_hook(self):
+    def add_python_file_to_index_with_content(self, content,
+                                              filename="added.py"):
+        self.add_file_to_index_with_content(content, filename)
+
+    def add_file_to_index_with_content(self, content, filename):
+        addedfile = os.path.join(self.root, filename)
+        with open(addedfile, "w") as f:
+            f.write(content)
+        self.git_add([addedfile])
+
+    def assert_pre_commit_hook_succeeds(self, testnames=[]):
+        (returncode, stdout, stderr) = self.run_precommit_hook(testnames)
+        self.assertEqual(returncode, 0,
+                         "hook should have succeeded,"
+                         "failed with output %s" % stdout)
+
+    def assert_pre_commit_hook_fails_with_text_regexp(self, text_regexp,
+                                                      testnames=[]):
+        """
+        runs pre-commit hook and assumes the hook will fail
+        the text_regexp is used as a regexp to compare the stdout
+        against
+        """
+        (returncode, stdout, stderr) = self.run_precommit_hook(testnames)
+        self.assertNotEqual(returncode, 0,
+                            "should have failed, output: %s" % stdout)
+        self.assertRegexpMatches(stdout, text_regexp)
+
+    def run_precommit_hook(self, testnames=[]):
         """
         runs the precommit hook,
+        only runs the test specified by testname, or all tests if []
         returning a tuple
         (returncode, stdout, stderr)
         """
-        cmd = os.path.realpath(os.path.join(_MYDIR, '..', 'pre-commit'))
-        proc = subprocess.Popen(cmd, cwd=self.root,
+        cmd = [os.path.realpath(os.path.join(_MYDIR, '..', 'pre-commit'))]
+        proc = subprocess.Popen(cmd + testnames, cwd=self.root,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         proc.wait()

@@ -24,7 +24,7 @@ if [ $STASH -eq 1 ]; then
     fi
 fi
 
-python "${DIR}/pre-commit.py"
+python "${DIR}/pre-commit.py" "$@"
 
 RESULT=$?
 

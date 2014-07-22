@@ -24,29 +24,36 @@ class ChangedFile:
 
     @classmethod
     def createForStagedFile(cls, filename):
-        with open(filename, "r") as f:
-            newlines = f.read().split("\n")
-        oldlines = subprocess.check_output(
-            ("git", "show", "HEAD:%s" % filename)).split("\n")
-
         textstatus = subprocess.check_output(
             ("git", "status", "--porcelain", filename))[0]
-
         filestatus = status.determineStatus(textstatus)
-        modifiedlinenumbers = []
 
-        diff = difflib.Differ().compare(oldlines, newlines)
-        linenr = 0
-        for line in diff:
-            if line[0] in (' ', '+'):
-                linenr += 1
-            if line[0] in ('+'):
-                modifiedlinenumbers.append(linenr-1)
-
-        if filestatus == status.ADDED:
-            oldlines = None
-        if filestatus == status.DELETED:
+        if filestatus in (status.ADDED, status.MODIFIED):
+            with open(filename, "r") as f:
+                newlines = f.read().split("\n")
+        else:
             newlines = None
+
+        if filestatus in (status.MODIFIED, status.DELETED):
+            oldlines = subprocess.check_output(
+                ("git", "show", "HEAD:%s" % filename)).split("\n")
+        else:
+            oldlines = None
+
+        if filestatus == status.MODIFIED:
+            modifiedlinenumbers = []
+            diff = difflib.Differ().compare(oldlines, newlines)
+            linenr = 0
+            for line in diff:
+                if line[0] in (' ', '+'):
+                    linenr += 1
+                if line[0] in ('+'):
+                    modifiedlinenumbers.append(linenr-1)
+        elif filestatus == status.ADDED:
+            modifiedlinenumbers = range(len(newlines))
+        else:
+            modifiedlinenumbers = None
+
         return cls(filename, filetype.determineFiletype(filename), filestatus,
                    newlines, oldlines, modifiedlinenumbers)
 

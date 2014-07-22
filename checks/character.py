@@ -34,3 +34,14 @@ class NoEndOfLineWhitespace(base.PerModifiedLineCheck):
         if pos:
             return (self.MESSAGE, pos.start())
         return None
+
+
+class NoMergeConflictMarkers(base.PerModifiedLineCheck):
+    MESSAGE = "Merge conflict marker in file"
+
+    def checkLine(self, line):
+        if (line.startswith("<<<<<<< ") or
+                line == ("=======") or
+                line.startswith(">>>>>>> ")):
+            return (self.MESSAGE, 0)
+        return None

@@ -9,6 +9,7 @@ CHECKS = [
     checks.character.OnlySafeCharacters,
     checks.character.NoTabs,
     checks.character.NoEndOfLineWhitespace,
+    checks.character.NoMergeConflictMarkers,
     ]
 
 

@@ -7,8 +7,8 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-STATUS="$(git status --porcelain) | grep '^.[^ ]')"
 STASH=0
+STATUS="$(git status --porcelain | grep '^.[^ ]')"
 if [ $? -eq 0 ]; then
     STASH=1
 fi

@@ -1,6 +1,5 @@
 import base
 import filetype
-import re
 
 
 class OnlySafeCharacters(base.PerModifiedLineCheck):
@@ -10,7 +9,11 @@ class OnlySafeCharacters(base.PerModifiedLineCheck):
     def checkLine(self, line):
         for i, c in enumerate(line):
             if c not in self.SAFECHARS:
-                return (self.MESSAGE, i)
+                if c == "\r" and i == len(line) - 1:
+                    # windows/unix enters have their own check
+                    pass
+                else:
+                    return (self.MESSAGE, i)
         return None
 
 
@@ -27,12 +30,10 @@ class NoTabs(base.PerModifiedLineCheck):
 
 class NoEndOfLineWhitespace(base.PerModifiedLineCheck):
     MESSAGE = "Whitespace at the end of the line"
-    REGEX = re.compile("\\s+$")
 
     def checkLine(self, line):
-        pos = self.REGEX.search(line)
-        if pos:
-            return (self.MESSAGE, pos.start())
+        if len(line) > 0 and line[-1] == " ":
+            return (self.MESSAGE, len(line)-2)
         return None
 
 

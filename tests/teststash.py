@@ -7,6 +7,15 @@ class StashTest(basetest.HookTestCase):
     STASH_REGEX = "(^|\n)Stashing local changes"
     UNSTASH_REGEX = "(^|\n)Unstashing local changes"
 
+    def setUp(self):
+        super(StashTest, self).setUp()
+        self.createAndCommitFiles({
+            "existing1.txt": "file existing1.txt\n",
+            "existing2.txt": "file existing2.txt\n",
+            }, "check in base files")
+        self.existing1txt = os.path.join(self.root, "existing1.txt")
+        self.existing2txt = os.path.join(self.root, "existing2.txt")
+
     def create_mad_files_in_index(self):
         """
         creates one modified, one added and

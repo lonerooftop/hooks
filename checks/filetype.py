@@ -5,6 +5,7 @@ MAKEFILE = "Makefile"
 CMAKE = "cmake"
 CPP = "c++"
 HPP = "c++ header"
+H = "c header"
 SH = "shell script"
 OTHER = "unknown filetype"
 
@@ -14,6 +15,7 @@ TEXTFILES = [
     CMAKE,
     CPP,
     HPP,
+    H,
     SH,
     ]
 
@@ -26,6 +28,7 @@ _EXTENSIONMATCH = {
     "py": PYTHON,
     "cpp": CPP,
     "hpp": HPP,
+    "h": H,
     "sh": SH,
     }
 

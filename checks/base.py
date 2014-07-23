@@ -7,11 +7,13 @@ import shutil
 
 
 class ChangedFile:
-    def __init__(self, filename, filetype, status, newlines, oldlines,
-                 modifiedlinenumbers):
+    def __init__(self, filename, filetype, status, newlines, newfilestring,
+                 oldlines, oldfilestring, modifiedlinenumbers):
         """filename is the name of the file relative to the base of the repo
         newlines is an array of all the lines in the new file
+        newfilestring is a string with the full new file
         oldlines is an array of all the lines in the old file
+        oldfilestring is a string with the full new file
         modifiedlinenumbers is an array of ints, that point to lines in the new
         file that were modified (0-based)"""
 
@@ -19,7 +21,9 @@ class ChangedFile:
         self.filetype = filetype
         self.status = status
         self.newlines = newlines
+        self.newfilestring = newfilestring
         self.oldlines = oldlines
+        self.oldfilestring = oldfilestring
         self.modifiedlinenumbers = modifiedlinenumbers
 
     @classmethod
@@ -30,14 +34,18 @@ class ChangedFile:
 
         if filestatus in (status.ADDED, status.MODIFIED):
             with open(filename, "r") as f:
-                newlines = f.read().split("\n")
+                newfilestring = f.read()
+            newlines = newfilestring.split("\n")
         else:
+            newfilestring = None
             newlines = None
 
         if filestatus in (status.MODIFIED, status.DELETED):
-            oldlines = subprocess.check_output(
-                ("git", "show", "HEAD:%s" % filename)).split("\n")
+            oldfilestring = subprocess.check_output(
+                ("git", "show", "HEAD:%s" % filename))
+            oldlines = oldfilestring.split("\n")
         else:
+            oldfilestring = None
             oldlines = None
 
         if filestatus == status.MODIFIED:
@@ -55,7 +63,8 @@ class ChangedFile:
             modifiedlinenumbers = None
 
         return cls(filename, filetype.determineFiletype(filename), filestatus,
-                   newlines, oldlines, modifiedlinenumbers)
+                   newlines, newfilestring, oldlines, oldfilestring,
+                   modifiedlinenumbers)
 
 
 class CheckError:
@@ -77,23 +86,27 @@ class Check:
 
 
 class PerFileCheck(Check):
+    """(abstract) base class to make a checker per file"""
     INTERESTED_IN_FILETYPES = filetype.TEXTFILES
     NOT_INTERESTED_IN_FILETYPES = []
     INTERESTED_IN_STATI = [status.ADDED, status.MODIFIED]
 
-    """(abstract) base class to make a checker per file"""
+    def setupFileCheck(self, changedFile):
+        # may be used by subclasses
+        return
+
     def doCheck(self):
         errors = []
         for changedFile in self.changedFiles:
-            if self.interstedInFile(changedFile) and \
-               changedFile.status in self.INTERESTED_IN_STATI and \
-               changedFile.filetype in self.INTERESTED_IN_FILETYPES and \
-               changedFile.filetype not in self.NOT_INTERESTED_IN_FILETYPES:
+            self.setupFileCheck(changedFile)
+            if self.interstedInFile(changedFile):
                 errors += self.checkFile(changedFile)
         return errors
 
     def interstedInFile(self, changedFile):
-        return True
+        return (changedFile.status in self.INTERESTED_IN_STATI and
+                changedFile.filetype in self.INTERESTED_IN_FILETYPES and
+                changedFile.filetype not in self.NOT_INTERESTED_IN_FILETYPES)
 
     def checkFile(self, changedFile):
         return []

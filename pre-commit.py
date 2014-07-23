@@ -10,6 +10,7 @@ CHECKS = [
     checks.character.NoTabs,
     checks.character.NoEndOfLineWhitespace,
     checks.character.NoMergeConflictMarkers,
+    checks.newline.ConsistentNewlines,
     ]
 
 

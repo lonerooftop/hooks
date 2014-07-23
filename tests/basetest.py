@@ -63,13 +63,21 @@ class HookTestCase(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
         subprocess.check_call(("git", "init", "-q"), cwd=self.root)
-        self.existing1txt = os.path.join(self.root, "existing1.txt")
-        self.existing2txt = os.path.join(self.root, "existing2.txt")
-        for filename in (self.existing1txt, self.existing2txt):
-            with open(filename, "w") as f:
-                f.write("file %s\n" % filename)
-        self.git_add([self.existing1txt, self.existing2txt])
-        self.git_commit_nocheck("initial setup")
+
+    def createAndCommitFiles(self, files, message):
+        """
+        files is a dictionary of filename:content
+        creates the files and commits them without
+        running any checks
+        message is the commit message
+        """
+        if len(files):
+            for filename in files:
+                self.add_file_to_index_with_content(
+                    filename=filename,
+                    content=files[filename]
+                    )
+        self.git_commit_nocheck(message)
 
     def tearDown(self):
         shutil.rmtree(self.root)

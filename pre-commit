@@ -28,7 +28,7 @@ python "${DIR}/pre-commit.py" "$@"
 
 RESULT=$?
 
-git clean -fdq && git co -q .
+git clean -fdq && git checkout -q .
 
 if [ $? -ne 0 ]; then
     echo "git clean failed, continuing with hook but may need manual cleanup later"

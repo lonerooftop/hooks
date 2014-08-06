@@ -15,7 +15,7 @@ class CompileCheck(base.PerFileCheck):
                 dirname,
                 os.path.basename(changedFile.filename))
             with open(tempfilename, "w") as f:
-                f.writelines(changedFile.oldlines)
+                f.write("\n".join(changedFile.oldlines))
             cmd = list(self.COMPILECOMMAND)
             cmd.append(tempfilename)
             try:

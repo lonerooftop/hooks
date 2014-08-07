@@ -39,7 +39,11 @@ From now on any new repo (cloned or inited) will point to the hook. To enable th
 
 in the existing repo (after making sure that there are no current hooks)
 
-#Git stash and CowRamFS
+# Extra hooks
+The hooks in this repo are meant to be general; that is, the should work equally well on all repos. Sometimes however you may want to have extra hooks, for instance, run your test-suite before committing.
+All files .git/hooks/pre-commit-test* are being run in addition to these default hooks, and if any of them fail, the checkin fails.
+
+# Git stash and CowRamFS
 
 During the hook we want to look at a version of the code that is about to be committed, not at the unstaged changes in git.
 The current master does this by calling a sequence of git stash and git clean commands.

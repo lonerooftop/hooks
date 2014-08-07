@@ -6,6 +6,7 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+HOOKSDIR="$( git rev-parse --show-toplevel )/.git/hooks"
 
 STASH=0
 STATUS="$(git status --porcelain | grep '^.[^ ]')"
@@ -27,6 +28,23 @@ fi
 python "${DIR}/pre-commit.py" "$@"
 
 RESULT=$?
+
+shopt -s nullglob
+for precommittest in "$HOOKSDIR"/pre-commit-test-*; do
+    if [ -x "$precommittest" ]; then
+        echo "Running extra test $precommittest"
+        $precommittest
+        if [ $? -ne 0 ]; then
+            echo "ERROR in test $precommittest"
+            RESULT=1
+        fi
+    else
+        echo "ERROR: extra test $precommittest is not executable"
+        RESULT=1
+    fi
+done
+
+
 
 git clean -fdq && git checkout -q .
 

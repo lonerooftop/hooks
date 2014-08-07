@@ -38,6 +38,11 @@ class CompileCheck(base.PerFileCheck):
         except subprocess.CalledProcessError as calledprocesserror:
             return [base.CheckError(changedFile, self.__class__,
                                     calledprocesserror.output)]
+        except OSError:
+            error = (
+                "Trying to execute:\n%s\n. This failed, possibly executable "
+                "is not installed on your system." % repr(cmd)[1:-1])
+            return [base.CheckError(changedFile, self.__class__, error)]
         return []
 
 

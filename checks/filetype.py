@@ -30,6 +30,7 @@ _EXTENSIONMATCH = {
     "hpp": HPP,
     "h": H,
     "sh": SH,
+    "cmake": CMAKE,
     }
 
 

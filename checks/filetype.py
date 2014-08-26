@@ -7,6 +7,7 @@ CPP = "c++"
 HPP = "c++ header"
 H = "c header"
 SH = "shell script"
+PROTO = "Protocol buffers"
 OTHER = "unknown filetype"
 
 TEXTFILES = [
@@ -17,6 +18,7 @@ TEXTFILES = [
     HPP,
     H,
     SH,
+    PROTO,
     ]
 
 _FILENAMEMATCH = {
@@ -31,6 +33,7 @@ _EXTENSIONMATCH = {
     "h": H,
     "sh": SH,
     "cmake": CMAKE,
+    "proto": PROTO,
     }
 
 

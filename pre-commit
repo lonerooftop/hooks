@@ -29,20 +29,22 @@ python "${DIR}/pre-commit.py" "$@"
 
 RESULT=$?
 
-shopt -s nullglob
-for precommittest in "$HOOKSDIR"/pre-commit-test-*; do
-    if [ -x "$precommittest" ]; then
-        echo "Running extra test $precommittest"
-        $precommittest
-        if [ $? -ne 0 ]; then
-            echo "ERROR in test $precommittest"
+if [ $RESULT -eq 0 ]; then
+    shopt -s nullglob
+    for precommittest in "$HOOKSDIR"/pre-commit-test-*; do
+        if [ -x "$precommittest" ]; then
+            echo "Running extra test $precommittest"
+            $precommittest
+            if [ $? -ne 0 ]; then
+                echo "ERROR in test $precommittest"
+                RESULT=1
+            fi
+        else
+            echo "ERROR: extra test $precommittest is not executable"
             RESULT=1
         fi
-    else
-        echo "ERROR: extra test $precommittest is not executable"
-        RESULT=1
-    fi
-done
+    done
+fi
 
 
 

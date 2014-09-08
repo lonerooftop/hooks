@@ -31,7 +31,7 @@ To install the hook in one repo, make a symlink from /path/to/repo/.git/hooks/pr
 
 To use the hook for all repo's, create a ~/.git-templates/hooks directory. Make a symlink from ~/.git-templates/hooks/pre-commit to /path/to/hooks/repo/pre-commit. Make sure the target link is absolute. Now enable this dir as your git-templates dir:
 
-    git config --global init.templatedir '~/.git-template'
+    git config --global init.templatedir '~/.git-templates"
 
 From now on any new repo (cloned or inited) will point to the hook. To enable the hook in an existing repo, run
 

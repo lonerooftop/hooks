@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import checks
 import sys
+import os
+import subprocess
 
 CHECKS = [
     checks.compile.PythonCompileCheck,
@@ -15,6 +17,10 @@ CHECKS = [
 
 
 def main():
+    gitrootdir = subprocess.check_output(("git", "rev-parse",
+                                          "--show-toplevel")).strip()
+    assert os.path.abspath(os.curdir) == gitrootdir, \
+        "Please run the checks in the git root directory"
     if len(sys.argv) > 1:
         # if called with commandline parameters, we assume
         # they are the names of the checks you want to run

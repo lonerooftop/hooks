@@ -1,5 +1,5 @@
-import base
-import status
+from . import base
+from . import status
 
 NEWLINE_UNIX = 1
 NEWLINE_WINDOWS = 2

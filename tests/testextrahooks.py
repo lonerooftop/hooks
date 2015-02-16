@@ -19,29 +19,29 @@ class ExtraHooksTest(basetest.HookTestCase):
 
     def testNotExecutableHook(self):
         with open(self.root + "/.git/hooks/pre-commit-test-corr", "w+b") as f:
-            f.write("echo correct\n")
+            f.write("echo correct\n".encode("UTF-8"))
         self.assert_pre_commit_hook_fails_with_text_regexp(
             "not executable",
             ["Pep8Check"])
 
     def testFailingHook(self):
         with open(self.root + "/.git/hooks/pre-commit-test-corr", "w+b") as f:
-            f.write("echo correct\n")
-        os.chmod(self.root + "/.git/hooks/pre-commit-test-corr", 0755)
+            f.write("echo correct\n".encode("UTF-8"))
+        os.chmod(self.root + "/.git/hooks/pre-commit-test-corr", 0o755)
         with open(self.root + "/.git/hooks/pre-commit-test-fail", "w+b") as f:
-            f.write("exit(1)\n")
-        os.chmod(self.root + "/.git/hooks/pre-commit-test-fail", 0755)
+            f.write("exit(1)\n".encode("UTF-8"))
+        os.chmod(self.root + "/.git/hooks/pre-commit-test-fail", 0o755)
         self.assert_pre_commit_hook_fails_with_text_regexp(
             "pre-commit-test-fail",
             ["Pep8Check"])
 
     def testCorrectHook(self):
         with open(self.root + "/.git/hooks/pre-commit-test-corr1", "w+b") as f:
-            f.write("echo correct\n")
-        os.chmod(self.root + "/.git/hooks/pre-commit-test-corr1", 0755)
+            f.write("echo correct\n".encode("UTF-8"))
+        os.chmod(self.root + "/.git/hooks/pre-commit-test-corr1", 0o755)
         with open(self.root + "/.git/hooks/pre-commit-test-corr2", "w+b") as f:
-            f.write("echo correct\n")
-        os.chmod(self.root + "/.git/hooks/pre-commit-test-corr2", 0755)
+            f.write("echo correct\n".encode("UTF-8"))
+        os.chmod(self.root + "/.git/hooks/pre-commit-test-corr2", 0o755)
         self.assert_pre_commit_hook_succeeds(["Pep8Check"])
         self.add_python_file_to_index_with_content(_EXAMPLE_INCORRECT_FILE2)
         self.assert_pre_commit_hook_fails_with_text_regexp(

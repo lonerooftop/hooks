@@ -1,4 +1,4 @@
-import base
+from . import base
 
 
 class SingleNewlineEndOfFileCheck(base.PerFileCheck):

@@ -1,5 +1,5 @@
-import base
-import filetype
+from . import base
+from . import filetype
 
 
 class OnlySafeCharacters(base.PerModifiedLineCheck):

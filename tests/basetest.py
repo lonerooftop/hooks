@@ -8,6 +8,12 @@ _MYDIR = os.path.dirname(os.path.realpath(__file__))
 
 
 class HookTestCase(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(HookTestCase, self).__init__(*args, **kwargs)
+        if not hasattr(self, "assertRegex"):
+            self.assertRegex = self.assertRegexpMatches
+            self.assertNotRegex = self.assertNotRegexpMatches
+
     def git_add(self, filenames):
         subprocess.check_call(["git", "add"] + filenames, cwd=self.root)
 
@@ -32,7 +38,8 @@ class HookTestCase(unittest.TestCase):
         (returncode, stdout, stderr) = self.run_precommit_hook(testnames)
         self.assertEqual(returncode, 0,
                          "hook should have succeeded,"
-                         "failed with output %s" % stdout)
+                         "failed with stdout: %s\nstderr: %s" % (
+                             stdout, stderr))
 
     def assert_pre_commit_hook_fails_with_text_regexp(self, text_regexp,
                                                       testnames=[]):
@@ -44,7 +51,11 @@ class HookTestCase(unittest.TestCase):
         (returncode, stdout, stderr) = self.run_precommit_hook(testnames)
         self.assertNotEqual(returncode, 0,
                             "should have failed, output: %s" % stdout)
-        self.assertRegexpMatches(stdout, text_regexp)
+        try:
+            self.assertRegex(stdout, text_regexp)
+        except AssertionError as e:
+            print("Stderr: %s" % stderr)
+            raise e
 
     def run_precommit_hook(self, testnames=[]):
         """
@@ -58,7 +69,12 @@ class HookTestCase(unittest.TestCase):
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
         proc.wait()
-        return (proc.returncode, proc.stdout.read(), proc.stderr.read())
+        stdout = proc.stdout.read()
+        proc.stdout.close()
+        stderr = proc.stderr.read()
+        proc.stderr.close()
+        return (proc.returncode, stdout.decode("UTF-8"),
+                stderr.decode("UTF-8"))
 
     def setUp(self):
         self.root = tempfile.mkdtemp()

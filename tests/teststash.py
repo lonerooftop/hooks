@@ -34,8 +34,8 @@ class StashTest(basetest.HookTestCase):
         self.create_mad_files_in_index()
         (returncode, stdout, stderr) = self.run_precommit_hook()
         self.assertEqual(returncode, 0)
-        self.assertNotRegexpMatches(stdout, self.STASH_REGEX)
-        self.assertNotRegexpMatches(stdout, self.UNSTASH_REGEX)
+        self.assertNotRegex(stdout, self.STASH_REGEX)
+        self.assertNotRegex(stdout, self.UNSTASH_REGEX)
 
     def test_stash_done_if_file_deleted(self):
         self.create_mad_files_in_index()
@@ -43,8 +43,8 @@ class StashTest(basetest.HookTestCase):
 
         (returncode, stdout, stderr) = self.run_precommit_hook()
         self.assertEqual(returncode, 0)
-        self.assertRegexpMatches(stdout, self.STASH_REGEX)
-        self.assertRegexpMatches(stdout, self.UNSTASH_REGEX)
+        self.assertRegex(stdout, self.STASH_REGEX)
+        self.assertRegex(stdout, self.UNSTASH_REGEX)
 
     def test_stash_done_if_file_modified(self):
         self.create_mad_files_in_index()
@@ -53,8 +53,8 @@ class StashTest(basetest.HookTestCase):
 
         (returncode, stdout, stderr) = self.run_precommit_hook()
         self.assertEqual(returncode, 0)
-        self.assertRegexpMatches(stdout, self.STASH_REGEX)
-        self.assertRegexpMatches(stdout, self.UNSTASH_REGEX)
+        self.assertRegex(stdout, self.STASH_REGEX)
+        self.assertRegex(stdout, self.UNSTASH_REGEX)
 
     def test_stash_done_if_file_added(self):
         self.create_mad_files_in_index()
@@ -64,8 +64,8 @@ class StashTest(basetest.HookTestCase):
 
         (returncode, stdout, stderr) = self.run_precommit_hook()
         self.assertEqual(returncode, 0)
-        self.assertRegexpMatches(stdout, self.STASH_REGEX)
-        self.assertRegexpMatches(stdout, self.UNSTASH_REGEX)
+        self.assertRegex(stdout, self.STASH_REGEX)
+        self.assertRegex(stdout, self.UNSTASH_REGEX)
 
 
 def main():

@@ -17,10 +17,10 @@ CHECKS = [
 
 
 def main():
-    gitrootdir = subprocess.check_output(("git", "rev-parse",
-                                          "--show-toplevel")).strip()
+    gitrootdir = subprocess.check_output(
+        ("git", "rev-parse", "--show-toplevel")).strip().decode("UTF-8")
     assert os.path.abspath(os.curdir) == gitrootdir, \
-        "Please run the checks in the git root directory"
+        "Please run the checks in the git root directory: %s " % gitrootdir
     if len(sys.argv) > 1:
         # if called with commandline parameters, we assume
         # they are the names of the checks you want to run
@@ -28,7 +28,7 @@ def main():
         # This is how the tests work
         checks_to_run = []
         for checkname in sys.argv[1:]:
-            newchecks = filter(lambda c: c.__name__ == checkname, CHECKS)
+            newchecks = list(filter(lambda c: c.__name__ == checkname, CHECKS))
             if len(newchecks) == 1:
                 checks_to_run += newchecks
             else:
@@ -42,8 +42,8 @@ def main():
 
     if len(errors) > 0:
         for error in errors:
-            print "%s, %s" % (error.changedFile.filename, error.errormessage)
-        print "COMMIT FAILED, solve the problems and try again"
+            print(u"%s, %s" % (error.changedFile.filename, error.errormessage))
+        print("COMMIT FAILED, solve the problems and try again")
         sys.exit(1)
 
 if __name__ == "__main__":

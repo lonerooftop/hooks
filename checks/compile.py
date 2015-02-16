@@ -1,6 +1,6 @@
-import base
-import status
-import filetype
+from . import base
+from . import status
+from . import filetype
 import os
 import subprocess
 

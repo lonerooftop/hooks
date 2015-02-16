@@ -5,7 +5,7 @@ import unittest
 class CharacterTest(basetest.HookTestCase):
     def test_only_safe_characters(self):
         self.add_python_file_to_index_with_content(
-            "print 'hello" + chr(130) + "world'\n"
+            "print('hello" + chr(130) + "world')\n"
             )
         self.assert_pre_commit_hook_fails_with_text_regexp(
             "unsafe character",
@@ -14,7 +14,7 @@ class CharacterTest(basetest.HookTestCase):
 
     def test_no_tabs(self):
         self.add_python_file_to_index_with_content(
-            "if 1:\tprint 'hello world'\n")
+            "if 1:\tprint('hello world')\n")
         self.assert_pre_commit_hook_fails_with_text_regexp(
             "Tabs in file",
             ["NoTabs"],
@@ -26,14 +26,14 @@ class CharacterTest(basetest.HookTestCase):
         self.assert_pre_commit_hook_succeeds(["NoTabs"])
 
     def test_no_whitespace_end_of_line(self):
-        self.add_python_file_to_index_with_content("print 'hello world' \n")
+        self.add_python_file_to_index_with_content("print('hello world') \n")
         self.assert_pre_commit_hook_fails_with_text_regexp(
             "Whitespace at the end of the line",
             ["NoEndOfLineWhitespace"],
             )
 
     def test_no_whitespace_end_of_line_correct(self):
-        self.add_python_file_to_index_with_content("print 'hello world '\n")
+        self.add_python_file_to_index_with_content("print('hello world) '\n")
         self.assert_pre_commit_hook_succeeds(["NoEndOfLineWhitespace"])
 
     def test_no_merge_conflict_start_markers(self):

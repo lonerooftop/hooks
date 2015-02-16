@@ -1,8 +1,8 @@
-import base
-import compile
-import newline
-import endoffilecheck
-import character
+from . import base
+from . import compile
+from . import newline
+from . import endoffilecheck
+from . import character
 
 __all__ = [compile, endoffilecheck, character, newline, base]
 

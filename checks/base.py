@@ -1,7 +1,7 @@
 import difflib
 import subprocess
-import status
-import filetype
+from . import status
+from . import filetype
 import tempfile
 import shutil
 
@@ -29,12 +29,13 @@ class ChangedFile:
     @classmethod
     def createForStagedFile(cls, filename):
         textstatus = subprocess.check_output(
-            ("git", "status", "--porcelain", filename))[0]
+            ("git", "status", "--porcelain", filename)).decode("UTF-8")[0]
         filestatus = status.determineStatus(textstatus)
 
         if filestatus in (status.ADDED, status.MODIFIED):
-            with open(filename, "r") as f:
+            with open(filename, "rb") as f:
                 newfilestring = f.read()
+            newfilestring = newfilestring.decode("latin-1")
             newlines = newfilestring.split("\n")
         else:
             newfilestring = None
@@ -42,7 +43,7 @@ class ChangedFile:
 
         if filestatus in (status.MODIFIED, status.DELETED):
             oldfilestring = subprocess.check_output(
-                ("git", "show", "HEAD:%s" % filename))
+                ("git", "show", "HEAD:%s" % filename)).decode("UTF-8")
             oldlines = oldfilestring.split("\n")
         else:
             oldfilestring = None
@@ -120,7 +121,8 @@ class PerModifiedLineCheck(PerFileCheck):
             error = self.checkLine(line)
             if error:
                 message = ["line %d: %s" % (linenr+1, error[0])]
-                message.append(line)
+                safeline = "".join([c if ord(c) < 128 else "?" for c in line])
+                message.append(safeline)
                 if len(error) > 0:
                     message.append("_" * error[1] + "^")
                 fullmessage = "\n".join(message)
@@ -144,7 +146,7 @@ class TempDir():
 
 def check(checks_to_perform):
     cmd = ["git", "diff", "--cached", "--raw"]
-    stati = subprocess.check_output(cmd).split('\n')
+    stati = subprocess.check_output(cmd).decode("UTF-8").split('\n')
     changedFiles = []
     for filestatus in stati[:-1]:  # last one is empty line
         filename = filestatus[39:]

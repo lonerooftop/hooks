@@ -4,6 +4,7 @@ from . import status
 from . import filetype
 import tempfile
 import shutil
+import os
 
 
 class ChangedFile:
@@ -28,6 +29,10 @@ class ChangedFile:
 
     @classmethod
     def createForStagedFile(cls, filename):
+        if not os.path.isfile(filename):
+            # doesn't happen with regular paths, but may with submodules
+            # for now we'll just ignore these
+            return None
         textstatus = subprocess.check_output(
             ("git", "status", "--porcelain", filename)).decode("UTF-8")[0]
         filestatus = status.determineStatus(textstatus)
@@ -151,7 +156,8 @@ def check(checks_to_perform):
     for filestatus in stati[:-1]:  # last one is empty line
         filename = filestatus[39:]
         changedFile = ChangedFile.createForStagedFile(filename)
-        changedFiles.append(changedFile)
+        if changedFile:
+            changedFiles.append(changedFile)
 
     errors = []
     for check in checks_to_perform:

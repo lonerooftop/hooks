@@ -1,10 +1,10 @@
 import basetest
 import unittest
 
-_EXAMPLE_CORRECT_FILE = "print 'hello'\nprint 'world'\n"
-_EXAMPLE_INCORRECT_FILE = "print 'hello'\nprint  'world'\n"
-_EXAMPLE_CORRECT_FILE2 = "print 'bye'\nprint 'mars'\n"
-_EXAMPLE_INCORRECT_FILE2 = "print 'bye'\nprint  'mars'\n"
+_EXAMPLE_CORRECT_FILE = "print('hello')\nprint('world')\n"
+_EXAMPLE_INCORRECT_FILE = "print 'hello'\nprint  ('world')\n"
+_EXAMPLE_CORRECT_FILE2 = "print('bye')\nprint('mars')\n"
+_EXAMPLE_INCORRECT_FILE2 = "print('bye')\nprint  ('mars')\n"
 
 
 class PEP8Test(basetest.HookTestCase):

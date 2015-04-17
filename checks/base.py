@@ -7,9 +7,8 @@ import shutil
 import os
 
 
-class ChangedFile:
-    def __init__(self, filename, filetype, status, newlines, newfilestring,
-                 oldlines, oldfilestring, modifiedlinenumbers):
+class ChangedFile(object):
+    def __init__(self, filename, filetype, status):
         """filename is the name of the file relative to the base of the repo
         newlines is an array of all the lines in the new file
         newfilestring is a string with the full new file
@@ -21,11 +20,77 @@ class ChangedFile:
         self.filename = filename
         self.filetype = filetype
         self.status = status
-        self.newlines = newlines
-        self.newfilestring = newfilestring
-        self.oldlines = oldlines
-        self.oldfilestring = oldfilestring
-        self.modifiedlinenumbers = modifiedlinenumbers
+
+        self._newlines = None
+        self._newfilestring = None
+        self._oldlines = None
+        self._oldfilestring = None
+        self._modifiedlinenumbers = None
+        self._filediffset = False
+
+    @property
+    def newlines(self):
+        self._getFileDiff()
+        return self._newlines
+
+    @property
+    def newfilestring(self):
+        self._getFileDiff()
+        return self._newfilestring
+
+    @property
+    def oldlines(self):
+        self._getFileDiff()
+        return self._oldlines
+
+    @property
+    def oldfilestring(self):
+        self._getFileDiff()
+        return self._oldfilestring
+
+    @property
+    def modifiedlinenumbers(self):
+        self._getFileDiff()
+        return self._modifiedlinenumbers
+
+    def _getFileDiff(self):
+        """
+        internal method to get the file diff only when its requested.
+        It will probably error in cases that the file is not a UTF8 text file
+        """
+        if self._filediffset:
+            return
+        self._filediffset = True
+        if self.status in (status.ADDED, status.MODIFIED):
+            with open(self.filename, "rb") as f:
+                newfilestring = f.read()
+            self._newfilestring = newfilestring.decode("latin-1")
+            self._newlines = newfilestring.split("\n")
+        else:
+            self._newfilestring = None
+            self._newlines = None
+
+        if self.status in (status.MODIFIED, status.DELETED):
+            self._oldfilestring = subprocess.check_output(
+                ("git", "show", "HEAD:%s" % self.filename)).decode("UTF-8")
+            self._oldlines = self._oldfilestring.split("\n")
+        else:
+            self._oldfilestring = None
+            self._oldlines = None
+
+        if self.status == status.MODIFIED:
+            self._modifiedlinenumbers = []
+            diff = difflib.Differ().compare(self._oldlines, self._newlines)
+            linenr = 0
+            for line in diff:
+                if line[0] in (' ', '+'):
+                    linenr += 1
+                if line[0] in ('+'):
+                    self._modifiedlinenumbers.append(linenr-1)
+        elif self.status == status.ADDED:
+            self._modifiedlinenumbers = range(len(self._newlines))
+        else:
+            self._modifiedlinenumbers = None
 
     @classmethod
     def createForStagedFile(cls, filename):
@@ -37,40 +102,7 @@ class ChangedFile:
             ("git", "status", "--porcelain", filename)).decode("UTF-8")[0]
         filestatus = status.determineStatus(textstatus)
 
-        if filestatus in (status.ADDED, status.MODIFIED):
-            with open(filename, "rb") as f:
-                newfilestring = f.read()
-            newfilestring = newfilestring.decode("latin-1")
-            newlines = newfilestring.split("\n")
-        else:
-            newfilestring = None
-            newlines = None
-
-        if filestatus in (status.MODIFIED, status.DELETED):
-            oldfilestring = subprocess.check_output(
-                ("git", "show", "HEAD:%s" % filename)).decode("UTF-8")
-            oldlines = oldfilestring.split("\n")
-        else:
-            oldfilestring = None
-            oldlines = None
-
-        if filestatus == status.MODIFIED:
-            modifiedlinenumbers = []
-            diff = difflib.Differ().compare(oldlines, newlines)
-            linenr = 0
-            for line in diff:
-                if line[0] in (' ', '+'):
-                    linenr += 1
-                if line[0] in ('+'):
-                    modifiedlinenumbers.append(linenr-1)
-        elif filestatus == status.ADDED:
-            modifiedlinenumbers = range(len(newlines))
-        else:
-            modifiedlinenumbers = None
-
-        return cls(filename, filetype.determineFiletype(filename), filestatus,
-                   newlines, newfilestring, oldlines, oldfilestring,
-                   modifiedlinenumbers)
+        return cls(filename, filetype.determineFiletype(filename), filestatus)
 
 
 class CheckError:

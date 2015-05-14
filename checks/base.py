@@ -65,7 +65,7 @@ class ChangedFile(object):
             with open(self.filename, "rb") as f:
                 newfilestring = f.read()
             self._newfilestring = newfilestring.decode("latin-1")
-            self._newlines = newfilestring.split("\n")
+            self._newlines = self._newfilestring.split("\n")
         else:
             self._newfilestring = None
             self._newlines = None

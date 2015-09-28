@@ -8,6 +8,12 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 HOOKSDIR="$( git rev-parse --show-toplevel )/.git/hooks"
 
+SOMETHING_IN_INDEX="$(git status --porcelain | grep '^[AMRDCU]')"
+if [ $? -ne 0 ]; then
+    echo -e "$(tput setaf 1)Nothing in index, not continuing$(tput sgr0)"
+    exit 1
+fi
+
 STASH=0
 STATUS="$(git status --porcelain | grep '^.[^ ]')"
 if [ $? -eq 0 ]; then

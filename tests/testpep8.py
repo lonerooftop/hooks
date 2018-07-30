@@ -1,10 +1,12 @@
-import basetest
 import unittest
+
+import basetest
 
 _EXAMPLE_CORRECT_FILE = "print('hello')\nprint('world')\n"
 _EXAMPLE_INCORRECT_FILE = "print 'hello'\nprint  ('world')\n"
 _EXAMPLE_CORRECT_FILE2 = "print('bye')\nprint('mars')\n"
 _EXAMPLE_INCORRECT_FILE2 = "print('bye')\nprint  ('mars')\n"
+_EXAMPLE_INCORRECT_FILE3 = "print('bye')\nx=a\n\nprint  ('mars')\n"
 
 
 class PEP8Test(basetest.HookTestCase):
@@ -43,6 +45,12 @@ class PEP8Test(basetest.HookTestCase):
                                             "incorrectfile.py")
         # should succeed, since a broken file is allowed to remain broken
         self.assert_pre_commit_hook_succeeds(["Pep8Check"])
+        self.add_file_to_index_with_content(_EXAMPLE_INCORRECT_FILE3,
+                                            "incorrectfile.py")
+        # Now it should fail since there are more errors now
+        self.assert_pre_commit_hook_fails_with_text_regexp(
+            "resulted in new errors, number F821, E225:",
+            ["Pep8Check"])
 
 
 def main():

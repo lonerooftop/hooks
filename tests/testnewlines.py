@@ -2,7 +2,9 @@ import basetest
 import unittest
 
 _EXAMPLE_WINDOWS_NEWLINES = "print 'hello'\r\nprint 'world'\r\n"
+_EXAMPLE_WINDOWS_NEWLINES2 = "print 'hello'\r\nprint 'world'\r\nprint 'bye'\r\n"
 _EXAMPLE_UNIX_NEWLINES = "print 'hello'\nprint 'world'\n"
+_EXAMPLE_UNIX_NEWLINES2 = "print 'hello'\nprint 'world'\nprint 'bye'\n"
 _EXAMPLE_MIXED_NEWLINES = "print 'hello'\nprint 'world'\r\n"
 
 
@@ -63,7 +65,7 @@ class NewLineTest(basetest.HookTestCase):
 
         self.add_file_to_index_with_content(
             filename=filename,
-            content=_EXAMPLE_UNIX_NEWLINES
+            content=_EXAMPLE_UNIX_NEWLINES2
             )
         self.assert_pre_commit_hook_succeeds(["ConsistentNewlines"])
 
@@ -89,7 +91,7 @@ class NewLineTest(basetest.HookTestCase):
 
         self.add_file_to_index_with_content(
             filename=filename,
-            content=_EXAMPLE_WINDOWS_NEWLINES
+            content=_EXAMPLE_WINDOWS_NEWLINES2
             )
         self.assert_pre_commit_hook_succeeds(["ConsistentNewlines"])
 

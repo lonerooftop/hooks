@@ -182,11 +182,16 @@ class TempDir():
 
 
 def check(checks_to_perform):
-    cmd = ["git", "diff", "--cached", "--raw"]
-    stati = subprocess.check_output(cmd).decode("UTF-8").split('\n')
+    cmd = ["git", "status", "--porcelain", "--null"]
+    stati = subprocess.check_output(cmd).decode("UTF-8").split("\0")
     changedFiles = []
-    for filestatus in stati[:-1]:  # last one is empty line
-        filename = filestatus[39:]
+    for filestatus in stati:
+        if filestatus == "":
+            continue
+        stagedchange = filestatus[0]
+        if stagedchange in " D":
+            continue
+        filename = filestatus[3:]
         changedFile = ChangedFile.createForStagedFile(filename)
         if changedFile:
             changedFiles.append(changedFile)

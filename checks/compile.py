@@ -62,7 +62,7 @@ class Pep8Check(CompileCheck):
     COMPILECOMMAND = ['flake8']
 
     def prepareOldFileDir(self, dirname):
-        if os.exists("setup.cfg"):
+        if os.path.exists("setup.cfg"):
             subprocess.check_call([
                 "cp", "setup.cfg", dirname])
         return dirname
@@ -85,6 +85,7 @@ class Pep8Check(CompileCheck):
     def checkFile(self, changedFile):
         if changedFile.status != status.ADDED:
             with base.TempDir() as dirname:
+                dirname = self.prepareOldFileDir(dirname)
                 tempfilename = os.path.join(
                     dirname,
                     os.path.basename(changedFile.filename))

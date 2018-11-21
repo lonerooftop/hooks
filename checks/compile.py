@@ -10,8 +10,12 @@ class CompileCheck(base.PerFileCheck):
     COMPILECOMMAND = []
     ONLY_IF_OLDFILE_COMPILES = True
 
+    def prepareOldFileDir(self, dirname):
+        return dirname
+
     def checkOldFile(self, changedFile):
         with base.TempDir() as dirname:
+            dirname = self.prepareOldFileDir(dirname)
             tempfilename = os.path.join(
                 dirname,
                 os.path.basename(changedFile.filename))
@@ -56,6 +60,12 @@ class PythonCompileCheck(CompileCheck):
 class Pep8Check(CompileCheck):
     INTERESTED_IN_FILETYPES = [filetype.PYTHON]
     COMPILECOMMAND = ['flake8']
+
+    def prepareOldFileDir(self, dirname):
+        if os.exists("setup.cfg"):
+            subprocess.check_call([
+                "cp", "setup.cfg", dirname])
+        return dirname
 
     def check_file_get_error_numbers(self, filename):
         cmd = list(self.COMPILECOMMAND) + [filename]

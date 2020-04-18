@@ -36,8 +36,6 @@ def main():
         if getattr(args, check.__name__):
             checks_to_run.append(check)
 
-    print(checks_to_run)
-
     errors = checks.check(checks_to_run)
 
     if len(errors) > 0:

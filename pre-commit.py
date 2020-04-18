@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import argparse
 import checks
 import sys
 import os
@@ -21,22 +22,21 @@ def main():
         ("git", "rev-parse", "--show-toplevel")).strip().decode("UTF-8")
     assert os.path.abspath(os.curdir) == gitrootdir, \
         "Please run the checks in the git root directory: %s " % gitrootdir
-    if len(sys.argv) > 1:
-        # if called with commandline parameters, we assume
-        # they are the names of the checks you want to run
+    parser = argparse.ArgumentParser()
+    for check in CHECKS:
+        name = check.__name__.lower()
+        parser.add_argument(
+            "--no-" + name,
+            dest=check.__name__,
+            action='store_false',
+            help="Switch off check " + name)
+    args = parser.parse_args()
+    checks_to_run = []
+    for check in CHECKS:
+        if getattr(args, check.__name__):
+            checks_to_run.append(check)
 
-        # This is how the tests work
-        checks_to_run = []
-        for checkname in sys.argv[1:]:
-            newchecks = list(filter(lambda c: c.__name__ == checkname, CHECKS))
-            if len(newchecks) == 1:
-                checks_to_run += newchecks
-            else:
-                print("Check '%s' not found, aborting" % checkname)
-                sys.exit(2)
-
-    else:
-        checks_to_run = CHECKS
+    print(checks_to_run)
 
     errors = checks.check(checks_to_run)
 
@@ -45,6 +45,7 @@ def main():
             print(u"%s, %s" % (error.changedFile.filename, error.errormessage))
         print("COMMIT FAILED, solve the problems and try again")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
